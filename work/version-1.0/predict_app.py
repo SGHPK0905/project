@@ -296,19 +296,34 @@ st.markdown("""
 
 @st.cache_resource
 def load_resources(method):
-    base_path = 'result/'
+    current_dir = Path(__file__).parent.absolute()
+    base_path = current_dir / 'result'
+    
     paths = {
         "GA": ("melting_point_model_ga.pkl", "features_list_ga.pkl"),
         "RFECV": ("melting_point_model_rfecv.pkl", "features_list_rfecv.pkl"),
         "Union": ("melting_point_model_uni.pkl", "features_list_uni.pkl"),
         "Intersection": ("melting_point_model_int.pkl", "features_list_int.pkl"),
     }
+    
     m_file, f_file = paths.get(method)
+    
+    model_path = base_path / m_file
+    feature_path = base_path / f_file
+
     try:
-        model = joblib.load(base_path + m_file)
-        features = joblib.load(base_path + f_file)
+        model = joblib.load(model_path)
+        features = joblib.load(feature_path)
         return model, features
-    except: return None, None
+    except FileNotFoundError:
+        st.error(f"❌ Lỗi: Không tìm thấy file tại: {model_path}")
+        st.write("📂 Các file hiện có trong thư mục result:")
+        try:
+            files_in_result = [f.name for f in base_path.glob('*')]
+            st.write(files_in_result)
+        except:
+            st.write("Không đọc được thư mục result.")
+        return None, None
 
 with st.sidebar:
     st.title("Cấu hình")
